@@ -51,7 +51,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  ReceivePort port = ReceivePort();
   int _counter = 1;
   void _incrementCounter() {
     setState(() {
@@ -66,8 +66,35 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double latitude = -1;
   double longitude = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    IsolateNameServer.registerPortWithName(
+        port.sendPort, 'location_send_port');
+    port.listen((dynamic data) {
+      print('Event: $data');
+      setState(() {
+        _counter = _counter + 200;
+      });
+    });
+  }
+
+  static void callback(Map value){
+    /*
+    setState(() {
+      _counter = _counter + 5000;
+    });
+
+     */
+    String a = "a";
+    print("yeahhhhhhhhhhhhh");
+    print(value);
+    IsolateNameServer.lookupPortByName("location_send_port").send(value);
+
+  }
   void _registerLocation() {
-    LocationManager.registerLocation("sippo");
+    LocationManager().registerLocation("sippo", callback);
   }
 
   @override
