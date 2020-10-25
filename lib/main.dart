@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'location.dart';
 
 void main() {
   runApp(MyApp());
@@ -51,7 +52,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  int _counter = 0;
+  int _counter = 1;
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -59,44 +60,15 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      _counter = _counter * 1;
     });
   }
 
   double latitude = -1;
   double longitude = -1;
   void _registerLocation() {
-    /*
-    LocationManager.registerLocation(
-        LocationRegion(
-            'mtv', latitude, longitude, radius, triggers,
-            androidSettings: androidSettings),
-        callback).then((value) {
-        setState(() {
-          registeredGeofences = value;
-        });
-      });
-    });
-     */
+    LocationManager.registerLocation("sippo");
   }
-
-  /*
-  @override
-  void initState() {
-    super.initState();
-    IsolateNameServer.registerPortWithName(
-        port.sendPort, 'geofencing_send_port');
-    port.listen((dynamic data) {
-      print('Event: $data');
-      setState(() {
-        geofenceState = data;
-      });
-    });
-    print('Initializing...');
-    await GeofencingManager.initialize();
-    print('Initialization done');
-  }
-   */
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              'You have pushed the button this many times:',
+              'BBB',
             ),
             Text(
               '$_counter',
