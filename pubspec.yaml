@@ -74,11 +74,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-  #plugin:
-  #  platforms:
-  #    android:
-  #      package: io.github.team_sippo.mnist.mnist_location_flutter
-  #      pluginClass: LocationPlugin
-  #    ios:
-  #      pluginClass: LocationPlugin

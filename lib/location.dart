@@ -9,7 +9,7 @@ class LocationManager {
 
   static Future<void> registerLocation(
       String name) async {
-    await _channel.invokeMethod('LocationPlugin.registerLocation', name);
+    await _channel.invokeMethod('LocationPlugin.registerLocation', [name]);
   }
 
 }
