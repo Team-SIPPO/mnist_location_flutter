@@ -70,6 +70,9 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
         )
         flutterEngine!!.dartExecutor.executeDartCallback(args)
         channel!!.setMethodCallHandler(this)
+        channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, LocationService.CHANNEL)
+        channel!!.setMethodCallHandler(this)
+
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
