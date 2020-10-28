@@ -32,7 +32,7 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
     private var locationCallback: LocationCallback? = null
     private var callbackHandle: Long? = null
-    private lateinit var channel: MethodChannel
+    private var channel: MethodChannel? = null
 
     companion object {
         private const val CHANNEL = "location_plugin_background"
@@ -47,16 +47,42 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
         context = applicationContext
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         fusedLocationProviderClient = FusedLocationProviderClient(this)
+        /*
         flutterEngine = FlutterEngine(this)
-
         channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, LocationService.CHANNEL)
         channel.setMethodCallHandler(this)
+         */
     }
 
+    fun setFlutterChannel(callbackHandle: Long){
+        val callbackInfo = FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
+        if (callbackInfo == null) {
+            Log.e(TAG, "Fatal: failed to find callback")
+            return
+        }
+        Log.i(TAG, "Starting GeofencingService...")
+        flutterEngine = FlutterEngine(this)
+
+        val args = DartExecutor.DartCallback(
+                this.getAssets(),
+                FlutterMain.findAppBundlePath(),
+                callbackInfo
+        )
+        flutterEngine!!.dartExecutor.executeDartCallback(args)
+        channel!!.setMethodCallHandler(this)
+    }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         Log.d("LocationService", "start command")
         callbackHandle = intent.getLongExtra("callbackHandle", -1)
+
+        setFlutterChannel(callbackHandle!!)
+        foreGroundStart(intent)
+        startGPS()
+        return START_NOT_STICKY
+    }
+
+    private fun foreGroundStart(intent: Intent){
         val requestCode = 0
         val channelId = "default"
 //        val title = context!!.getString(R.string.app_name)
@@ -71,39 +97,35 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
                 context!!.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         // Notification　Channel 設定
-        val channel = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        val fgChannel = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel(
                     channelId, title, NotificationManager.IMPORTANCE_DEFAULT
             )
         } else {
             TODO("VERSION.SDK_INT < O")
         }
-        channel.description = "Silent Notification"
+        fgChannel.description = "Silent Notification"
         // 通知音を消さないと毎回通知音が出てしまう
         // この辺りの設定はcleanにしてから変更
-        channel.setSound(null, null)
+        fgChannel.setSound(null, null)
         // 通知ランプを消す
-        channel.enableLights(false)
-        channel.lightColor = Color.BLUE
+        fgChannel.enableLights(false)
+        fgChannel.lightColor = Color.BLUE
         // 通知バイブレーション無し
-        channel.enableVibration(false)
-        if (notificationManager != null) {
-            notificationManager.createNotificationChannel(channel)
-            val notification = Notification.Builder(context, channelId)
-                    .setContentTitle(title) // 本来なら衛星のアイコンですがandroid標準アイコンを設定
-                    .setSmallIcon(android.R.drawable.btn_star)
-                    .setContentText("GPS")
-                    .setAutoCancel(true)
-                    .setContentIntent(pendingIntent)
-                    .setWhen(System.currentTimeMillis())
-                    .build()
+        fgChannel.enableVibration(false)
+        notificationManager.createNotificationChannel(fgChannel)
+        val notification = Notification.Builder(context, channelId)
+                .setContentTitle(title) // 本来なら衛星のアイコンですがandroid標準アイコンを設定
+                .setSmallIcon(android.R.drawable.btn_star)
+                .setContentText("GPS")
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setWhen(System.currentTimeMillis())
+                .build()
 
-            // startForeground
-            startForeground(1, notification)
-        }
+        // startForeground
+        startForeground(1, notification)
 
-        startGPS()
-        return START_NOT_STICKY
     }
 
     @SuppressLint("MissingPermission")
@@ -155,10 +177,9 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
                     result["latitude"] = location.latitude
                     result["longitude"] = location.longitude
                     Log.d(TAG, "callbackHandle = " + callbackHandle.toString())
-                    Handler(this@LocationService.mainLooper).post{
-                        channel.invokeMethod("", listOf(callbackHandle, result))
-                        Log.d(TAG, "invoke method")
-                    }
+                    Log.d(TAG, "result = " + result.toString())
+                    channel!!.invokeMethod("", listOf(callbackHandle, result))
+                    Log.d(TAG, "invoke method")
                 }
             }
             fusedLocationProviderClient!!.requestLocationUpdates(

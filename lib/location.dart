@@ -8,7 +8,7 @@ class LocationManager {
   static const MethodChannel _channel = MethodChannel('location_plugin');
   static const MethodChannel _background = MethodChannel('location_plugin_background');
   LocationManager(){
-    _channel.setMethodCallHandler((call) async {
+    _background.setMethodCallHandler((call) async {
       Function callback = PluginUtilities.getCallbackFromHandle(
           CallbackHandle.fromRawHandle(call.arguments[0])
       );

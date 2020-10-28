@@ -40,7 +40,7 @@ class MainActivity: FlutterActivity() {
                 val map: HashMap<String, Double> = HashMap()
                 map["longitude"] = 12.0
                 map["latitude"] = 32.4
-                channel.invokeMethod("", listOf(callbackHandle, map))
+                // channel.invokeMethod("", listOf(callbackHandle, map))
                 Log.d(TAG,"after")
                 result.success("OK")
                 // API 26 以降
