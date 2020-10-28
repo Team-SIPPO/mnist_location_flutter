@@ -19,6 +19,7 @@ class MainActivity: FlutterActivity() {
     companion object {
         private const val CHANNEL = "location_plugin"
         private const val METHOD_GET_LIST = "LocationPlugin.registerLocation"
+        private const val METHOD_INITIALIZE = "LocationPlugin.initialize"
         private const val TAG = "FlutterActivity"
         private const val REQUEST_MULTI_PERMISSIONS = 101
 
@@ -47,9 +48,22 @@ class MainActivity: FlutterActivity() {
                 Log.d(TAG, "start location")
                 checkMultiPermissions()
                 Log.d(TAG, "end location")
-            }
-            else
+            } else if (methodCall.method == METHOD_INITIALIZE) {
+                callbackHandle = args[0] as Long
+                Log.d(TAG, "act callbackHandle = " + callbackHandle.toString())
+                val name = args[1] as String
+                Log.d(TAG, "Android name=$name")
+                Log.d(TAG,"before")
+                // channel.invokeMethod("", listOf(callbackHandle, map))
+                Log.d(TAG,"after")
+                result.success("OK")
+                // API 26 以降
+                Log.d(TAG, "start location")
+                checkMultiPermissions()
+                Log.d(TAG, "end location")
+            } else {
                 result.notImplemented()
+            }
         }
     }
 

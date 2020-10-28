@@ -1,27 +1,25 @@
-import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mnist_location_flutter/callback_dispatcher.dart';
 
 class LocationManager {
-
   static const MethodChannel _channel = MethodChannel('location_plugin');
-  static const MethodChannel _background = MethodChannel('location_plugin_background');
-  LocationManager(){
-    _background.setMethodCallHandler((call) async {
-      Function callback = PluginUtilities.getCallbackFromHandle(
-          CallbackHandle.fromRawHandle(call.arguments[0])
-      );
-      print("MethodChannel dart");
-      Map value = call.arguments[1];
-      callback(value);
-      print("MethodChannel dart called");
-
-    });
-  }
+  static bool initialized = false;
 
   Future<void> registerLocation(
       String name, Function(Map) callback) async {
+
+    if(!LocationManager.initialized){
+      final List<dynamic> args = <dynamic>[
+        PluginUtilities.getCallbackHandle(callbackDispatcher).toRawHandle()
+      ];
+      args.add(name);
+      await _channel.invokeMethod('LocationPlugin.initialize', args);
+      await Future.delayed(Duration(seconds: 5));
+      LocationManager.initialized = true;
+    }
 
     final List<dynamic> args = <dynamic>[
       PluginUtilities.getCallbackHandle(callback).toRawHandle()

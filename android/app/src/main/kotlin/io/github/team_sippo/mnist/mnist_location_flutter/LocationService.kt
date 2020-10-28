@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.LocationManager
-import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
@@ -20,8 +19,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.dart.DartExecutor
+import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.PluginRegistry
 import io.flutter.view.FlutterCallbackInformation
 import io.flutter.view.FlutterMain
 
@@ -33,6 +34,7 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
     private var locationCallback: LocationCallback? = null
     private var callbackHandle: Long? = null
     private var channel: MethodChannel? = null
+    private var initialized = false
 
     companion object {
         private const val CHANNEL = "location_plugin_background"
@@ -67,9 +69,16 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
         val args = DartExecutor.DartCallback(
                 this.getAssets(),
                 FlutterMain.findAppBundlePath(),
-                callbackInfo
-        )
+                callbackInfo);
         flutterEngine!!.dartExecutor.executeDartCallback(args)
+
+
+        /*
+        val entrypoint = DartEntrypoint("lib/callback_dispatcher.dart",
+                "receiveLocation")
+        flutterEngine!!.dartExecutor.executeDartEntrypoint(entrypoint)
+         */
+
         channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL)
         channel!!.setMethodCallHandler(this)
 
@@ -79,9 +88,16 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
         Log.d("LocationService", "start command")
         callbackHandle = intent.getLongExtra("callbackHandle", -1)
 
-        setFlutterChannel(callbackHandle!!)
-        foreGroundStart(intent)
-        startGPS()
+        if(!initialized){
+            Log.d(TAG, "call first.")
+            setFlutterChannel(callbackHandle!!)
+            foreGroundStart(intent)
+            initialized = true
+        } else {
+            Log.d(TAG, "call secound.")
+            startGPS()
+        }
+
         return START_NOT_STICKY
     }
 
