@@ -55,6 +55,7 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
     }
 
     fun setFlutterChannel(callbackHandle: Long){
+        Log.d(TAG, "setFlutterChannel : $callbackHandle")
         val callbackInfo = FlutterCallbackInformation.lookupCallbackInformation(callbackHandle)
         if (callbackInfo == null) {
             Log.e(TAG, "Fatal: failed to find callback")
@@ -69,8 +70,7 @@ class LocationService : Service(), MethodChannel.MethodCallHandler {
                 callbackInfo
         )
         flutterEngine!!.dartExecutor.executeDartCallback(args)
-        channel!!.setMethodCallHandler(this)
-        channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, LocationService.CHANNEL)
+        channel = MethodChannel(flutterEngine!!.dartExecutor.binaryMessenger, CHANNEL)
         channel!!.setMethodCallHandler(this)
 
     }
